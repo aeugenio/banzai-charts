@@ -52,19 +52,6 @@ spec:
         image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
         imagePullPolicy: {{ .Values.image.pullPolicy }}
         env:
-          - name: NAME
-            valueFrom:
-              fieldRef:
-                fieldPath: metadata.name
-          - name: NAMESPACE
-            valueFrom:
-              fieldRef:
-                fieldPath: metadata.namespace
-          - name: OBJSTORE_CONFIG
-            valueFrom:
-              secretKeyRef:
-                key: thanos.yaml
-                name: thanos-objectstorage
         {{- with .Values.receive.extraEnv }}
         {{- toYaml . | nindent 10 }}
         {{- end }}
@@ -94,9 +81,9 @@ spec:
         {{- toYaml .Values.receive.readinessProbe | nindent 10 }}
         {{- end }}
         ports:
-          - containerPort: 10901
+          - containerPort: {{ .Values.receive.grpc.port}}
             name: grpc
-          - containerPort: 10902
+          - containerPort: {{ .Values.receive.http.port}}
             name: http
           - containerPort: {{ .Values.receive.remotewrite.port}}
             name: remote-write
@@ -110,8 +97,8 @@ spec:
           - name: config-volume
             mountPath: /etc/config
             readOnly: true
-          - name: hashring-config
-            mountPath: /var/lib/thanos-receive
+          #- name: hashring-config
+          #  mountPath: /var/lib/thanos-receive
           {{- if .Values.receive.certSecretName }}
           - mountPath: /etc/certs
             name: {{ .Values.receive.certSecretName }}
@@ -119,12 +106,6 @@ spec:
           {{- end }}
       terminationGracePeriodSeconds: 900
       volumes:
-        - name: data
-          {{- if .Values.receive.dataVolume.backend }}
-          {{ toYaml .Values.receive.dataVolume.backend | nindent 8 }}
-          {{- else }}
-          emptyDir: {}
-          {{- end }}
         - name: config-volume
           secret:
             {{- if .Values.objstoreSecretOverride }}
@@ -150,7 +131,7 @@ spec:
   volumeClaimTemplates:
     - metadata:
         labels:
-          app.kubernetes.io/component: database-write-hashring
+          #app.kubernetes.io/component: database-write-hashring
           app.kubernetes.io/instance: thanos-receive
           app.kubernetes.io/name: thanos-receive
         name: data

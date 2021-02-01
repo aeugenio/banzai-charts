@@ -1125,7 +1125,7 @@ sidecar:
       #      - chart-example.local
 
 receive:
-  enabled: true
+  enabled: false
 
   # Where the TSDB data directory is located.
   mountPath: ./data/
@@ -1256,19 +1256,17 @@ receive:
   # set up store readinessProbe & livenessProbe
   # Ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/
   livenessProbe:
-    failureThreshold: 8
+    #failureThreshold: 8
     httpGet:
       path: /-/healthy
-      port: 10902
-      scheme: HTTP
-    periodSeconds: 30
+      port: http
+    #periodSeconds: 30
   readinessProbe:
-    failureThreshold: 20
+    #failureThreshold: 20
     httpGet:
       path: /-/ready
-      port: 10902
-      scheme: HTTP
-    periodSeconds: 5
+      port: http
+    #periodSeconds: 5
   # Node tolerations for server scheduling to nodes with taints
   # Ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/
   tolerations: []
