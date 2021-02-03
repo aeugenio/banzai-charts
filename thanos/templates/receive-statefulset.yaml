@@ -26,7 +26,7 @@ spec:
 {{- with .Values.receive.deploymentMatchLabels }}
       {{- toYaml . | nindent 6 }}
 {{- end }}
-  serviceName: thanos-receive
+  serviceName: {{ include "thanos.fullname" . }}-receive
   template:
     metadata:
       labels:
@@ -59,15 +59,15 @@ spec:
           - "receive"
           - "--log.level={{ .Values.receive.logLevel }}"
           - "--log.format={{ .Values.receive.logFormat }}"
-          - "--grpc-address=0.0.0.0:{{ .Values.receive.grpc.port }}"
-          - "--http-address=0.0.0.0:{{ .Values.receive.http.port }}"
-          - "--remote-write.address=0.0.0.0:{{ .Values.receive.remotewrite.port }}"
+          - "--grpc-address=0.0.0.0:{{ .Values.receive.service.grpc.port }}"
+          - "--http-address=0.0.0.0:{{ .Values.receive.service.http.port }}"
+          - "--remote-write.address=0.0.0.0:{{ .Values.receive.service.remotewrite.port }}"
           - "--receive.replication-factor={{ .Values.receive.replicationFactor }}"
           - "--objstore.config-file=/etc/config/object-store.yaml"
           - "--tsdb.path={{ .Values.receive.mountPath }}"
           - "--label=receive_replica=\"{{ .Values.receive.receiveReplica }}\""
           - "--tsdb.retention={{ .Values.receive.retention}}"
-          - "--receive.local-endpoint=127.0.0.1:{{ .Values.receive.grpc.port }}"
+          - "--receive.local-endpoint=127.0.0.1:{{ .Values.receive.service.grpc.port }}"
           #- --receive.hashrings-file=/var/lib/thanos-receive/hashrings.json
             {{- if .Values.receive.extraArgs }}
             {{- toYaml .Values.receive.extraArgs | nindent 10 }}
@@ -81,12 +81,12 @@ spec:
         {{- toYaml .Values.receive.readinessProbe | nindent 10 }}
         {{- end }}
         ports:
-          - containerPort: {{ .Values.receive.grpc.port}}
+          - containerPort: {{ .Values.receive.service.grpc.port}}
             name: grpc
-          - containerPort: {{ .Values.receive.http.port}}
+          - containerPort: {{ .Values.receive.service.http.port}}
             name: http
-          - containerPort: {{ .Values.receive.remotewrite.port}}
-            name: remote-write
+          - containerPort: {{ .Values.receive.service.remotewrite.port}}
+            name: remotewrite
         resources:
         {{- toYaml .Values.receive.resources | nindent 10 }}
         terminationMessagePolicy: FallbackToLogsOnError
