@@ -97,8 +97,8 @@ spec:
           - name: config-volume
             mountPath: /etc/config
             readOnly: true
-          #- name: hashring-config
-          #  mountPath: /var/lib/thanos-receive
+          - name: hashring-config
+            mountPath: /var/lib/thanos-receive
           {{- if .Values.receive.certSecretName }}
           - mountPath: /etc/certs
             name: {{ .Values.receive.certSecretName }}
@@ -119,6 +119,9 @@ spec:
             defaultMode: 420
             secretName: {{ .Values.receive.certSecretName }}
         {{- end }}
+        - configMap:
+            name: hashring
+          name: hashring-config
       {{- with .Values.receive.nodeSelector }}
       nodeSelector: {{ toYaml . | nindent 8 }}
       {{- end }}
@@ -132,9 +135,21 @@ spec:
     - metadata:
         labels:
           #app.kubernetes.io/component: database-write-hashring
-          app.kubernetes.io/instance: thanos-receive
-          app.kubernetes.io/name: thanos-receive
+          app.kubernetes.io/instance: {{ include "thanos.componentname" (list $ "receive") }}
+          app.kubernetes.io/name: {{ include "thanos.componentname" (list $ "receive") }}-data
         name: data
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        resources:
+          requests:
+            storage: 10Gi
+    - metadata:
+        labels:
+          #app.kubernetes.io/component: database-write-hashring
+          app.kubernetes.io/instance: {{ include "thanos.componentname" (list $ "receive") }}
+          app.kubernetes.io/name: {{ include "thanos.componentname" (list $ "receive") }}-hashring-config
+        name: {{ include "thanos.componentname" (list $ "receive") }}-hashring-config
       spec:
         accessModes:
           - ReadWriteOnce
